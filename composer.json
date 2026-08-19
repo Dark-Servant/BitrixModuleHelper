@@ -1,0 +1,16 @@
+{
+    "name": "dark_servant/bitrix_module_helpers",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "DarkServant\\BitrixModuleHelpers\\": ""
+        }
+    },
+    "authors": [
+        {
+            "name": "Konstantin Beloglazov",
+            "email": "abbcccddddeeeee@ya.ru"
+        }
+    ],
+    "require": {}
+}
