@@ -36,14 +36,14 @@ class Options
 
     public function onBeforeModuleRemovingMethods()
     {
-        if (!FullCleaning::getInstance()->canToSaving()) {
-            Option::delete('main', ['name' => $this->mainMdlPropertyName]);
-
-        } else {
+        if (FullCleaning::getInstance()->canToSaving()) {
             $data = $this->form->getOptions()->getData();
             if (!empty($data)) {
                 Option::set('main', $this->mainMdlPropertyName, json_encode($data));
             }
+
+        } else {
+            Option::delete('main', ['name' => $this->mainMdlPropertyName]);
         }
     }
 }

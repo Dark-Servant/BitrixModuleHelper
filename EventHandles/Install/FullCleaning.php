@@ -15,9 +15,9 @@ final class FullCleaning
         );
 
         $this->canToSaving = !(
-                (isset($refererParams['DarkServantMdlClean']) && $refererParams['DarkServantMdlClean'] == 'Y')
-                || (defined('DARK_SERVANT_MDL_CLEAN') && constant('DARK_SERVANT_MDL_CLEAN') === true)
-            );
+                    (isset($refererParams['DarkServantMdlClean']) && strtolower($refererParams['DarkServantMdlClean']) == 'y')
+                    || (defined('DARK_SERVANT_MDL_CLEAN') && constant('DARK_SERVANT_MDL_CLEAN') === true)
+                );
     }
 
     public static function getInstance(): self

@@ -12,5 +12,12 @@
             "email": "abbcccddddeeeee@ya.ru"
         }
     ],
-    "require": {}
+    "require": {
+        "symfony/console": "^6.4"
+    },
+    "bin": [
+        "bin/bitrix-module-helpers",
+        "bin/bitrix-module-helpers.bat",
+        "bin/bitrix-module-helpers.php"
+    ]
 }
