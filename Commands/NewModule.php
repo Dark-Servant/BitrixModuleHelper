@@ -18,13 +18,13 @@ use DarkServant\BitrixModuleHelpers\Main as MainModule;
 class NewModule extends Command
 {
     protected const TEMPLATE_PATH = __DIR__ . '/../Templates/empty.module';
-    protected const MODULES_DIRECTORY = './local/modules';
 
     protected string $name;
     protected string $title;
     protected ?string $parent;
     protected ?string $partner;
 
+    protected string $moduleFolder;
     protected ?string $realParentName;
     protected ?string $realParentClassName;
 
@@ -45,6 +45,7 @@ class NewModule extends Command
         $this->title = (string)$input->getArgument('title');
         $this->parent = $input->getOption('parent');
         $this->partner = $input->getOption('partner');
+        $this->moduleFolder = $_SERVER['DOCUMENT_ROOT'] . '/local/modules';
 
         try
         {
@@ -64,15 +65,15 @@ class NewModule extends Command
             return Command::FAILURE;
         }
 
-        $output->writeln('<info>Модуль ' . $this->name . ' создан в ' . self::MODULES_DIRECTORY . '</info>');
+        $output->writeln('<info>Модуль ' . $this->name . ' создан в ' . $this->moduleFolder . '</info>');
 
         return Command::SUCCESS;
     }
 
     protected function prepareMainModuleFolder(): static
     {
-        if (!is_dir(self::MODULES_DIRECTORY) && !mkdir(self::MODULES_DIRECTORY, 0775, true)) {
-            new \Exception('Не удалось создать папку ' . self::MODULES_DIRECTORY);
+        if (!is_dir($this->moduleFolder) && !mkdir($this->moduleFolder, 0775, true)) {
+            new \Exception('Не удалось создать папку ' . $this->moduleFolder);
         }
         return $this;
     }  
@@ -97,10 +98,10 @@ class NewModule extends Command
 
         $this->realParentName = $this->findModuleByName($this->parent);
         if ($this->realParentName === null) {
-            throw new \Exception('Указанный родительский модуль ' . $this->parent . ' не существует в ' . self::MODULES_DIRECTORY);
+            throw new \Exception('Указанный родительский модуль ' . $this->parent . ' не существует в ' . $this->moduleFolder);
         }
 
-        $installFile = self::MODULES_DIRECTORY . '/' . $this->realParentName . '/install/index.php';
+        $installFile = $this->moduleFolder . '/' . $this->realParentName . '/install/index.php';
         if (!is_file($installFile)) {
             throw new \Exception('Файл установки родительского модуля ' . $installFile . ' не найден');
         }
@@ -116,10 +117,10 @@ class NewModule extends Command
 
     protected  function findModuleByName(string $name): ?string
     {
-        foreach (scandir(self::MODULES_DIRECTORY) as $moduleName) {
+        foreach (scandir($this->moduleFolder) as $moduleName) {
             if (
                 ($moduleName === '.') || ($moduleName === '..')
-                || !is_dir(self::MODULES_DIRECTORY . '/' . $moduleName)
+                || !is_dir($this->moduleFolder . '/' . $moduleName)
                 || (strcasecmp($moduleName, $name) !== 0)
             ) {
                 continue;
@@ -133,7 +134,7 @@ class NewModule extends Command
 
     protected function copyTemplateFolder(): static
     {
-        $targetDir = self::MODULES_DIRECTORY . '/' . $this->name;
+        $targetDir = $this->moduleFolder . '/' . $this->name;
         if (!is_dir($targetDir) && !mkdir($targetDir, 0775, true)) {
             throw new \RuntimeException('Не удалось создать папку ' . $targetDir);
         }
@@ -176,7 +177,7 @@ class NewModule extends Command
     {
         $files = [];
         $iterator = new \RecursiveIteratorIterator(
-                        new \RecursiveDirectoryIterator(self::MODULES_DIRECTORY . '/' . $this->name, \FilesystemIterator::SKIP_DOTS)
+                        new \RecursiveDirectoryIterator($this->moduleFolder . '/' . $this->name, \FilesystemIterator::SKIP_DOTS)
                     );
         foreach ($iterator as $item) {
             if ($item->isFile() && strtolower($item->getExtension()) === 'php') {
@@ -189,7 +190,7 @@ class NewModule extends Command
 
     protected function fillLangFile(): static
     {
-        $langFile = self::MODULES_DIRECTORY . '/' . $this->name . '/lang/ru/install/index.php';
+        $langFile = $this->moduleFolder . '/' . $this->name . '/lang/ru/install/index.php';
         if (!is_file($langFile)) {
             return $this;
         }
@@ -215,7 +216,7 @@ class NewModule extends Command
 
     protected function fillVersionDate(): static
     {
-        $versionFile = self::MODULES_DIRECTORY . '/' . $this->name . '/install/version.php';
+        $versionFile = $this->moduleFolder . '/' . $this->name . '/install/version.php';
         if (!is_file($versionFile)) {
             return $this;
         }
@@ -232,7 +233,7 @@ class NewModule extends Command
             return $this;
         }
 
-        $installFile = self::MODULES_DIRECTORY . '/' . $this->name . '/install/index.php';
+        $installFile = $this->moduleFolder . '/' . $this->name . '/install/index.php';
         if (!is_file($installFile)) {
             return $this;
         }

@@ -12,7 +12,7 @@ class Tab implements \IteratorAggregate
             protected string $div,
             protected string $tabTitle,
             protected string $icon,
-            protected string $title
+            protected string $popUpTitle
     )
     {
     }
@@ -55,7 +55,7 @@ class Tab implements \IteratorAggregate
             'DIV' => $this->div,
             'TAB' => $this->tabTitle,
             'ICON' => $this->icon,
-            'TITLE' => $this->title
+            'TITLE' => $this->popUpTitle
         ];
     }
 }
