@@ -1,4 +1,4 @@
-<input type="text"
+<input type="<?=$this->type?>"
     size="<?=$this->size?>"
     maxlength="255"
     value="<?=htmlspecialcharsbx($this->value)?>"

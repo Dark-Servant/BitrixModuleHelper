@@ -11,7 +11,16 @@ use DarkServant\BitrixModuleHelpers\Admin\Options\Inputs\{
     Selectbox
 };
 
+function checkingData(Form $form, array $oldData): void
+{
+    $newData = $form->getOptions()->getData() ?? [];
+    if (empty($newData['wiski'])) {
+        $form->addErrorMessageForName('Пожалуйста, введите значение "Виски"', 'wiski');
+    }
+}
+
 (new Form(basename(__DIR__)))
+    ->setThrowableCheckingCallBack(checkingData(...))
     ->addSectionTitle('Тра-ли-вали')
     ->addInput((new Checkbox('Чу-чу', 'chuchu'))->setValue(true))
     ->addInput((new Text('Виски', 'wiski'))->setSizeValue(20))

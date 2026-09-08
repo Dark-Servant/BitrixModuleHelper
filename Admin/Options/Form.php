@@ -7,12 +7,20 @@ use DarkServant\BitrixModuleHelpers\Admin\Options\Inputs\Checkbox;
 class Form
 {
     const OPTION_PARAMETER_NAME = 'options';
+    protected $errorMessages = [];
     protected $tabs = [];
     protected $settings = [];
+    protected ?\Closure $checkingCallBack = null;
 
     public function __construct(protected string $moduleID)
     {
         $this->options = (new OptionParameter($this->moduleID))->setName(static::OPTION_PARAMETER_NAME);
+    }
+
+    public function setThrowableCheckingCallBack(\Closure $checkingCallBack): static
+    {
+        $this->checkingCallBack = $checkingCallBack;
+        return $this;
     }
 
     public function getOptions(): OptionParameter
@@ -42,8 +50,11 @@ class Form
     {
         global $APPLICATION, $mid;
         $tabControl = new \CAdminTabControl($tabControlName, array_map(fn($tab) => $tab->toArray(), $this->prepareTabs()->tabs));
-        $this->saveChangesForTabControl($tabControl);
 
+        if (empty($this->saveChangesForTabControl($tabControl)->errorMessages)) {
+            $this->processDataCheckingWithOldData($this->options->getData() ?? []);
+        }
+        
         $savedData = $this->options->getData() ?? [];
         require __DIR__ . '/../../Templates/Options/Form.php';
     }
@@ -63,6 +74,7 @@ class Form
             return $this;
         }
 
+        $oldData = $this->options->getData() ?? [];
         if (!empty($_POST['RestoreDefaults'])) {
             $this->options->setData([]);
 
@@ -72,7 +84,7 @@ class Form
                     if (is_string($element)) continue;
 
                     $name = $element->getName();
-                    $value = $_REQUEST[$element->getName()];
+                    $value = $_POST[$name];
                     if (($element instanceof Checkbox) && ($value != 'Y')) {
                         $value = 'N';
                     }
@@ -80,6 +92,10 @@ class Form
                 }
             }
         }
+        if (!empty($this->processDataCheckingWithOldData($oldData)->errorMessages)) {
+            return $this;
+        }
+        
         $this->options->save();
 
         if (!empty($_POST['Update']) && !empty($_REQUEST['back_url_settings'])) {
@@ -94,6 +110,22 @@ class Form
                         . '&' . $tabControl->ActiveTabParam()
                 );
         }
+        return $this;
+    }
+
+    public function addErrorMessageForName(string $message, string $name): static
+    {
+        $this->errorMessages[$name] = $message;
+        return $this;
+    }
+
+    protected function processDataCheckingWithOldData(array $oldData): static
+    {
+        if (!$this->checkingCallBack) {
+            return $this;
+        }
+        $this->errorMessages = [];
+        ($this->checkingCallBack)($this, $oldData);
         return $this;
     }
 

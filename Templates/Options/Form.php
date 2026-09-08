@@ -21,7 +21,15 @@ foreach ($this->tabs as $tabNumber => $tab):
             <label for="<?=htmlspecialcharsbx($element->getName())?>"><?=$element->getTitle()?>:</label>
         </td>
         <td width="60%"><?
-        $element->setValueFromList($savedData)->render();?>
+        $element->setValueFromList($savedData)->render();
+        $errorMesssage = $this->errorMessages[$element->getName()] ?? null;
+        if (!empty($errorMesssage)):?>
+            <span class="adm-info-message-wrap adm-info-message-red">
+                <div class="adm-info-message">
+                    <?=$errorMesssage?>
+                </div>
+            </span><?
+        endif;?>
         </td>
     </tr><?
     endforeach;

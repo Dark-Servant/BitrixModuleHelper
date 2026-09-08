@@ -5,8 +5,15 @@ use DarkServant\BitrixModuleHelpers\Admin\Options\Input;
 
 class Text extends Input
 {
+    protected string $type;
     protected int $size;
     protected bool $readonly = false;
+
+    public function __construct()
+    {
+        parent::__construct(...func_get_args());
+        $this->type = strtolower((new \ReflectionClass(static::class))->getShortName());
+    }
 
     public function setSizeValue(int $size): static
     {
