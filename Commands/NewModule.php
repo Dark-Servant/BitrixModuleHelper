@@ -18,11 +18,13 @@ use DarkServant\BitrixModuleHelpers\Main as MainModule;
 class NewModule extends Command
 {
     protected const TEMPLATE_PATH = __DIR__ . '/../Templates/empty.module';
+    protected const FILES = __DIR__ . '/NewModule/Files.php';
 
     protected string $name;
     protected string $title;
     protected ?string $parent;
     protected ?string $partner;
+    protected array $fileOptions = [];
 
     protected string $moduleFolder;
     protected ?string $realParentName;
@@ -37,6 +39,15 @@ class NewModule extends Command
             ->addOption('parent', 'p', InputOption::VALUE_REQUIRED, 'Символьный код родительского модуля')
             ->addOption('partner', null, InputOption::VALUE_REQUIRED, 'Название партнёра (языковая фраза *_PARTNER_NAME)')
         ;
+
+        foreach ($this->getFiles() as $name => $file) {
+            $this->addOption(
+                'file-' . $name,
+                null,
+                InputOption::VALUE_NONE,
+                $file['description']
+            );
+        }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -45,6 +56,9 @@ class NewModule extends Command
         $this->title = (string)$input->getArgument('title');
         $this->parent = $input->getOption('parent');
         $this->partner = $input->getOption('partner');
+        foreach ($this->getFiles() as $name => $file) {
+            $this->fileOptions[$name] = (bool)$input->getOption('file-' . $name);
+        }
         $this->moduleFolder = $_SERVER['DOCUMENT_ROOT'] . '/local/modules';
 
         try
@@ -144,6 +158,10 @@ class NewModule extends Command
                         \RecursiveIteratorIterator::SELF_FIRST
                     );
         foreach ($iterator as $item) {
+            if (!$this->shouldCopyTemplatePath($iterator->getSubPathName())) {
+                continue;
+            }
+
             $target = $targetDir . '/' . $iterator->getSubPathName();
             if ($item->isDir()) {
                 if (!is_dir($target) && !mkdir($target, 0775, true)) {
@@ -155,6 +173,29 @@ class NewModule extends Command
             }
         }
         return $this;
+    }
+
+    protected function getFiles(): array
+    {
+        static $files;
+
+        return $files ??= require self::FILES;
+    }
+
+    protected function shouldCopyTemplatePath(string $path): bool
+    {
+        foreach ($this->getFiles() as $name => $file) {
+            if (
+                ($path !== $file['path'])
+                && !str_starts_with($path, $file['path'] . '/')
+            ) {
+                continue;
+            }
+
+            return $this->fileOptions[$name];
+        }
+
+        return true;
     }
 
     protected function correctPHPFiles(): static
